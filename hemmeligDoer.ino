@@ -7,7 +7,7 @@ const int volume = 0; //normal=3
 //Motor
 const int pulsePin      = 7;
 const int directionPin  = 6; //motor direction - LOW = go up
-const int enablePin     = 2; //momentum - HIGH = motor keep holding string 
+const int enablePin     = 2; //momentum - HIGH = motor keep holding wire 
 const long motorStepDistance = 5000;
 bool goUp = true;
 
@@ -29,9 +29,9 @@ int pressIndex = 0;
 bool haveResetCount = false;
 int pressTimes[numPresses];
 int correctPressTimes[] = {200,200,200,500,200};
+String pressColor = "rainbow";
 
 /* Globals for Askes sensor */
-String okRFIDCards[] = {"72 13 DF 20","57 51 87 4B","44 9A 26 75"};
 typedef struct {
   int  num;
   boolean access;
@@ -96,15 +96,17 @@ void roomOfOtto() {
 
   long pressStartTime = millis();
   
-  while(digitalRead(sensorPin)) {
+  while(digitalRead(sensorPin)) { //press
     analogWrite(soundPin, volume);
   }
 
-  digitalWrite(soundPin, LOW);
+  digitalWrite(soundPin, LOW); 
   
   int pressTime = millis() - pressStartTime;
-  Serial.println(pressTime);
+  
   pressTimes[pressIndex] = pressTime;
+  Serial.println(String("[Press] index=") + pressIndex  + "  time=" + pressTime);
+  
   haveResetCount = false;
   pressIndex++;
 
@@ -120,8 +122,7 @@ void roomOfOtto() {
     if (!stillCorrect) { 
       errorSound();
     } else {
-      succesSound();
-      unlock();
+      unlock(pressColor);
     }
 
     pressIndex = 0;
@@ -129,11 +130,14 @@ void roomOfOtto() {
   }
 }
 
-void unlock() {
+void unlock(String color) {
+  succesSound();
   if (goUp) {
     Serial.println("[Dør] Gå op");
+    turnOnLED(color);
   } else {
     Serial.println("[Dør] Gå ned");
+    turnOffLED();
   }
   digitalWrite(enablePin,HIGH);
     
@@ -145,6 +149,14 @@ void unlock() {
   }
   
   changeDirection();
+}
+
+void turnOnLED(String color) {
+  Serial.println("[LEDring] " + color);
+}
+
+void turnOffLED() {
+  Serial.println("[LEDring] OFF");
 }
 
 void changeDirection() {
@@ -170,11 +182,11 @@ void errorSound() {
 
 void timeoutSound() {
   for (int i = 0; i < 3; i++) {
-        analogWrite(soundPin, volume);
-        delay(75);
-        digitalWrite(soundPin, LOW);
-        delay(75);
-      }
+    analogWrite(soundPin, volume);
+    delay(75);
+    digitalWrite(soundPin, LOW);
+    delay(75);
+  }
 }
 
 void succesSound() {
@@ -193,7 +205,6 @@ void succesSound() {
 
 void checkRFID() {
   // Look for new cards
-  
   if ( ! mfrc522.PICC_IsNewCardPresent()) 
   {
     
@@ -205,46 +216,40 @@ void checkRFID() {
     return;
   }
   
-  
-  
   String content= "";
   byte letter;
   for (byte i = 0; i < mfrc522.uid.size; i++) 
   {
-     //Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
-     //Serial.print(mfrc522.uid.uidByte[i], HEX);
      content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
      content.concat(String(mfrc522.uid.uidByte[i], HEX));
   }
   content.toUpperCase();
-  //if (content.substring(1) == "72 13 DF 20") //change here the UID of the card/cards that you want to give access
-  //if (arrayIncludeElement(okRFIDCards,content.substring(1)))
-  if (hasUIDAssess(content.substring(1)))
-  {
-    succesSound();
-    unlock();
-    //Serial.println();
-    delay(3000);
+  String to_find = content.substring(1);
+  int len = (sizeof (RFIDcards) / sizeof (RFIDcards)); // how many elements in array
+  int x; // generic loop counter
+  for (x = 0; x < len; x++) {
+    if (to_find == RFIDcards[x].macAdress && RFIDcards[x].access ) { 
+      Serial.println("[RFID] Sucess med " + RFIDcards[x].desc + " " + RFIDcards[x].type + " (" + RFIDcards[x].macAdress + ")");
+      unlock(RFIDcards[x].color);
+      delay(3000);
+      return;
+    } 
   }
- 
- else   {
-    errorSound();
-    delay(3000);
-  }
+  Serial.println("[RFID] Fail med " + to_find);
+  errorSound();
+  delay(3000);
+  
 }
 
 boolean hasUIDAssess (String to_find) {
   int len = (sizeof (RFIDcards) / sizeof (RFIDcards)); // how many elements in array
-  
-  
-    int x; // generic loop counter
+  int x; // generic loop counter
   for (x = 0; x < len; x++) {
-            
-        if (to_find == RFIDcards[x].macAdress && RFIDcards[x].access ) { // this is the key: a match returns 0
-            Serial.println("[RFID] Sucess med " + RFIDcards[x].desc + " " + RFIDcards[x].type + " (" + RFIDcards[x].macAdress + ")");
-            return true;
-        } 
-    }
-    Serial.println("[RFID] Fail med " + to_find);
-    return false;
+    if (to_find == RFIDcards[x].macAdress && RFIDcards[x].access ) { 
+      Serial.println("[RFID] Sucess med " + RFIDcards[x].desc + " " + RFIDcards[x].type + " (" + RFIDcards[x].macAdress + ")");
+      return true;
+    } 
+  }
+  Serial.println("[RFID] Fail med " + to_find);
+  return false;
 }
