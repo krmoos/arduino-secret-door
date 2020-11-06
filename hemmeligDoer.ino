@@ -20,6 +20,7 @@ bool goUp = true;
 CRGB leds[NUM_LEDS]; // This is an array of leds.  One item for each led in your strip.
 #define BRIGHTNESS          40
 #define FRAMES_PER_SECOND  120
+
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
 extern CRGBPalette16 myRedWhiteBluePalette;
@@ -188,26 +189,20 @@ void unlock(String color) {
 
 void turnOnLED(String color) {
   Serial.println("[LEDring] " + color);
-  currentPalette = myRedWhiteBluePalette_p; 
-  currentBlending = NOBLEND;
-
-  FillLEDsFromPaletteColors( 1);
-    
-    FastLED.show();
-    FastLED.delay(1000 / FRAMES_PER_SECOND);
-  //for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed = whiteLed + 1) {
+  
+  for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed = whiteLed + 1) {
       // Turn our current led on to white, then show the leds
-    //  leds[whiteLed] = CRGB::Yellow;
+      leds[whiteLed] = CRGB::Yellow;
 
       // Show the leds (only one of which is set to white, from above)
-      //FastLED.show();
+      FastLED.show();
 
       // Wait a little bit
-      //delay(10);
+      delay(10);
 
       // Turn our current led back to black for the next loop around
       //leds[whiteLed] = CRGB::Black;
-   //}
+   }
 }
 
 void turnOffLED() {
@@ -320,35 +315,3 @@ boolean hasUIDAssess (String to_find) {
   Serial.println("[RFID] Fail med " + to_find);
   return false;
 }
-
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
-{
-    uint8_t brightness = 255;
-    
-    for( int i = 0; i < NUM_LEDS; ++i) {
-        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-        colorIndex += 3;
-    }
-}
-
-const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
-{
-    CRGB::Red,
-    CRGB::Gray, // 'white' is too bright compared to red and blue
-    CRGB::Blue,
-    CRGB::Black,
-    
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Black,
-    
-    CRGB::Red,
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Blue,
-    CRGB::Black,
-    CRGB::Black
-};
