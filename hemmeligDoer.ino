@@ -43,7 +43,10 @@ typedef struct {
 
 RFIDcardType RFIDcards[] = { 
   {1,true, "57 51 87 4B", "YELLOW","Rød-prikket","nøglebrik"},
-  {2,true, "97 A1 E5 33", "WHITE","Sort","nøglebrik"}
+  {2,true, "97 A1 E5 33", "WHITE","Sort","nøglebrik"},
+{3,true, "97 A1 E5 33", "WHITE","Sort","nøglebrik"}
+  
+
 };
 
 #include <SPI.h>
@@ -189,7 +192,7 @@ void timeoutSound() {
   }
 }
 
-void succesSound() {
+void succesSound() { 
     //correct - unlock-sound
     for (int i = 0; i < 4; i++) {
       analogWrite(soundPin, volume);
@@ -205,11 +208,19 @@ void succesSound() {
 
 void checkRFID() {
   // Look for new cards
-  if ( ! mfrc522.PICC_IsNewCardPresent()) 
+  // Look for cards
+ if ( ! mfrc522.PICC_IsNewCardPresent())
+ {
+    delay(50);
+  if ( ! mfrc522.PICC_IsNewCardPresent())
   {
+    delay(50);
     
     return;
+    }
   }
+
+  Serial.println("[RFID] NEW CARD");
   // Select one of the cards
   if ( ! mfrc522.PICC_ReadCardSerial()) 
   {
@@ -225,8 +236,9 @@ void checkRFID() {
   }
   content.toUpperCase();
   String to_find = content.substring(1);
-  int len = (sizeof (RFIDcards) / sizeof (RFIDcards)); // how many elements in array
+  int len = sizeof (RFIDcards); // how many elements in array
   int x; // generic loop counter
+  
   for (x = 0; x < len; x++) {
     if (to_find == RFIDcards[x].macAdress && RFIDcards[x].access ) { 
       Serial.println("[RFID] Sucess med " + RFIDcards[x].desc + " " + RFIDcards[x].type + " (" + RFIDcards[x].macAdress + ")");
@@ -235,7 +247,7 @@ void checkRFID() {
       return;
     } 
   }
-  Serial.println("[RFID] Fail med " + to_find);
+  Serial.println("[RFID] Fail med " + to_find );
   errorSound();
   delay(3000);
   
