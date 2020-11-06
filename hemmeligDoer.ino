@@ -20,12 +20,19 @@ bool goUp = true;
 CRGB leds[NUM_LEDS]; // This is an array of leds.  One item for each led in your strip.
 #define BRIGHTNESS          40
 #define FRAMES_PER_SECOND  120
+CRGBPalette16 currentPalette;
+TBlendType    currentBlending;
+extern CRGBPalette16 myRedWhiteBluePalette;
+extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+
+
 
 // Globals for Ottos sensor 
 const int sensorPin = 4; //Touch sensor - Capacity sensor
 const int numPresses = 5; //Number of presses - code
 const int thresh = 200;
 int pressIndex = 0;
+int len;
 bool haveResetCount = false;
 int pressTimes[numPresses];
 int correctPressTimes[] = {200,200,200,500,200};
@@ -42,9 +49,15 @@ typedef struct {
 } RFIDcardType;
 
 RFIDcardType RFIDcards[] = { 
-  {1,true, "57 51 87 4B", "YELLOW","Rød-prikket","nøglebrik"},
-  {2,true, "97 A1 E5 33", "WHITE","Sort","nøglebrik"},
-{3,true, "97 A1 E5 33", "WHITE","Sort","nøglebrik"}
+//num,access,macAdress    ,colorLED ,Sign                 ,type  
+  {1 ,true  ,"57 51 87 4B","YELLOW" ,"Rød-prikket"        ,"nøglebrik"},
+  {2 ,true  ,"97 A1 E5 33","WHITE"  ,"Sort"               ,"nøglebrik"},
+  {3 ,true  ,"87 0E 21 65","BLUE"   ,"Hvidt nr. 1"        ,"Kort"},
+  {4 ,true  ,"FD 34 D0 2B","WHITE"  ,"BD-kort"            ,"KORT"},
+  {5 ,true  ,"72 13 DF 20","WHITE"  ,"Hvidt nr. 2"        ,"KORT"}
+
+  
+
   
 
 };
@@ -58,9 +71,16 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
 void setup() {
   Serial.begin(9600);
+  char buffer[30];
+  
   pinMode(sensorPin, INPUT);
+  Serial.println("[PRESS] klar...");
+  
+  
   pinMode(soundPin, OUTPUT);
-  Serial.println("[SOUND] klar... volume="+volume  );
+  sprintf(buffer, "[SOUND] klar... volume=%d ", volume);
+  Serial.println(buffer);
+  
   pinMode(pulsePin, OUTPUT);
   pinMode(directionPin, OUTPUT);
   pinMode(enablePin, OUTPUT);
@@ -68,9 +88,21 @@ void setup() {
   
   SPI.begin();      // Initiate  SPI bus
   mfrc522.PCD_Init();   // Initiate MFRC522
-  Serial.println("[RFID] klar...");
+  len = sizeof(RFIDcards) / sizeof(RFIDcards[0]); // how many elements in array
   
-  FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS);
+  
+  sprintf(buffer, "[RFID] klar... kort i databasen=%d", len);
+  Serial.println(buffer);
+  
+  
+  
+  
+  FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.setBrightness(  BRIGHTNESS );
+    
+    currentPalette = RainbowColors_p;
+    currentBlending = LINEARBLEND;
+    
   Serial.println("[LED] klar...");
   Serial.println();
 
@@ -156,10 +188,34 @@ void unlock(String color) {
 
 void turnOnLED(String color) {
   Serial.println("[LEDring] " + color);
+  currentPalette = myRedWhiteBluePalette_p; 
+  currentBlending = NOBLEND;
+
+  FillLEDsFromPaletteColors( 1);
+    
+    FastLED.show();
+    FastLED.delay(1000 / FRAMES_PER_SECOND);
+  //for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed = whiteLed + 1) {
+      // Turn our current led on to white, then show the leds
+    //  leds[whiteLed] = CRGB::Yellow;
+
+      // Show the leds (only one of which is set to white, from above)
+      //FastLED.show();
+
+      // Wait a little bit
+      //delay(10);
+
+      // Turn our current led back to black for the next loop around
+      //leds[whiteLed] = CRGB::Black;
+   //}
 }
 
 void turnOffLED() {
   Serial.println("[LEDring] OFF");
+  for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed = whiteLed + 1) {
+      leds[whiteLed] = CRGB::Black;
+      FastLED.show();
+   }
 }
 
 void changeDirection() {
@@ -236,18 +292,17 @@ void checkRFID() {
   }
   content.toUpperCase();
   String to_find = content.substring(1);
-  int len = sizeof (RFIDcards); // how many elements in array
   int x; // generic loop counter
   
   for (x = 0; x < len; x++) {
     if (to_find == RFIDcards[x].macAdress && RFIDcards[x].access ) { 
       Serial.println("[RFID] Sucess med " + RFIDcards[x].desc + " " + RFIDcards[x].type + " (" + RFIDcards[x].macAdress + ")");
       unlock(RFIDcards[x].color);
-      delay(3000);
+      delay(10000);
       return;
     } 
   }
-  Serial.println("[RFID] Fail med " + to_find );
+  Serial.println("[RFID] Fail with " + to_find );
   errorSound();
   delay(3000);
   
@@ -265,3 +320,35 @@ boolean hasUIDAssess (String to_find) {
   Serial.println("[RFID] Fail med " + to_find);
   return false;
 }
+
+void FillLEDsFromPaletteColors( uint8_t colorIndex)
+{
+    uint8_t brightness = 255;
+    
+    for( int i = 0; i < NUM_LEDS; ++i) {
+        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+        colorIndex += 3;
+    }
+}
+
+const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
+{
+    CRGB::Red,
+    CRGB::Gray, // 'white' is too bright compared to red and blue
+    CRGB::Blue,
+    CRGB::Black,
+    
+    CRGB::Red,
+    CRGB::Gray,
+    CRGB::Blue,
+    CRGB::Black,
+    
+    CRGB::Red,
+    CRGB::Red,
+    CRGB::Gray,
+    CRGB::Gray,
+    CRGB::Blue,
+    CRGB::Blue,
+    CRGB::Black,
+    CRGB::Black
+};
