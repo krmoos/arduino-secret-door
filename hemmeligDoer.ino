@@ -57,7 +57,6 @@ RFIDcardType RFIDcards[] = {
   {4 ,true  ,"87 0E 21 65",CRGB::Yellow   ,"Hvidt nr. 1"        ,"Kort"},
   {5 ,true  ,"72 13 DF 20",CRGB::Blue  ,"Hvidt nr. 2"        ,"Kort"},
   {6 ,true  ,"30 F7 26 75",CRGB::Red  ,"Hvidt nr. 3"        ,"Kort"}
-
 };
 
 #include <SPI.h>
@@ -74,7 +73,6 @@ void setup() {
   pinMode(sensorPin, INPUT);
   Serial.println("[PRESS] klar...");
   
-  
   pinMode(soundPin, OUTPUT);
   sprintf(buffer, "[SOUND] klar... volume=%d ", volume);
   Serial.println(buffer);
@@ -83,38 +81,22 @@ void setup() {
   pinMode(directionPin, OUTPUT);
   pinMode(enablePin, OUTPUT);
   digitalWrite(directionPin,HIGH);
+  Serial.println("[MOTOR] klar...");
   
   SPI.begin();      // Initiate  SPI bus
   mfrc522.PCD_Init();   // Initiate MFRC522
   len = sizeof(RFIDcards) / sizeof(RFIDcards[0]); // how many elements in array
-  
-  
   sprintf(buffer, "[RFID] klar... kort i databasen=%d", len);
   Serial.println(buffer);
   
-  
-  
-  
   FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-    FastLED.setBrightness(  BRIGHTNESS );
-    
-    currentPalette = RainbowColors_p;
-    currentBlending = LINEARBLEND;
-    
+  FastLED.setBrightness(  BRIGHTNESS );
   Serial.println("[LED] klar...");
   Serial.println();
 
 }
 
 void loop() {
-
-  roomOfOtto();
-
-  
-}
-
-void roomOfOtto() {
-  
   long loopStartTime = millis();
   
   while(!digitalRead(sensorPin)) { //primarialy in this while (not pushing)
@@ -257,7 +239,6 @@ void succesSound() {
 
 void checkRFID() {
   // Look for new cards
-  // Look for cards
  if ( ! mfrc522.PICC_IsNewCardPresent())
  {
     delay(50);
