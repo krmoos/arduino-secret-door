@@ -2,7 +2,7 @@
 
 //Speaker
 const int soundPin = 3;
-const int volume = 0; //normal=3
+const int volume = 2; //normal=3
 
 //Motor
 const int pulsePin      = 7;
@@ -37,29 +37,26 @@ int len;
 bool haveResetCount = false;
 int pressTimes[numPresses];
 int correctPressTimes[] = {200,200,200,500,200};
-String pressColor = "rainbow";
+CRGB pressColor = CRGB::Blue;
 
 /* Globals for Askes sensor */
 typedef struct {
   int  num;
   boolean access;
   String macAdress;
-  String color;
+  CRGB color;//String color;
   String desc;
   String type;
 } RFIDcardType;
 
 RFIDcardType RFIDcards[] = { 
 //num,access,macAdress    ,colorLED ,Sign                 ,type  
-  {1 ,true  ,"57 51 87 4B","YELLOW" ,"Rød-prikket"        ,"nøglebrik"},
-  {2 ,true  ,"97 A1 E5 33","WHITE"  ,"Sort"               ,"nøglebrik"},
-  {3 ,true  ,"87 0E 21 65","BLUE"   ,"Hvidt nr. 1"        ,"Kort"},
-  {4 ,true  ,"FD 34 D0 2B","WHITE"  ,"BD-kort"            ,"KORT"},
-  {5 ,true  ,"72 13 DF 20","WHITE"  ,"Hvidt nr. 2"        ,"KORT"}
-
-  
-
-  
+  {1 ,true  ,"57 51 87 4B",CRGB::Yellow ,"Rød-prikket"        ,"nøglebrik"},
+  {2 ,true  ,"97 A1 E5 33",CRGB::Green  ,"Sort"               ,"nøglebrik"},
+  {3 ,true  ,"FD 34 D0 2B",CRGB::Gold  ,"BD-kort"            ,"Kort"},
+  {4 ,true  ,"87 0E 21 65",CRGB::Yellow   ,"Hvidt nr. 1"        ,"Kort"},
+  {5 ,true  ,"72 13 DF 20",CRGB::Blue  ,"Hvidt nr. 2"        ,"Kort"},
+  {6 ,true  ,"30 F7 26 75",CRGB::Red  ,"Hvidt nr. 3"        ,"Kort"}
 
 };
 
@@ -166,7 +163,8 @@ void roomOfOtto() {
   }
 }
 
-void unlock(String color) {
+void unlock(CRGB color) {
+  
   succesSound();
   if (goUp) {
     Serial.println("[Dør] Gå op");
@@ -187,12 +185,12 @@ void unlock(String color) {
   changeDirection();
 }
 
-void turnOnLED(String color) {
-  Serial.println("[LEDring] " + color);
+void turnOnLED(CRGB color) {
+  Serial.println("[LEDring] " );
   
   for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed = whiteLed + 1) {
       // Turn our current led on to white, then show the leds
-      leds[whiteLed] = CRGB::Yellow;
+      leds[whiteLed] = color;
 
       // Show the leds (only one of which is set to white, from above)
       FastLED.show();
@@ -200,10 +198,10 @@ void turnOnLED(String color) {
       // Wait a little bit
       delay(10);
 
-      // Turn our current led back to black for the next loop around
-      //leds[whiteLed] = CRGB::Black;
+     
    }
 }
+
 
 void turnOffLED() {
   Serial.println("[LEDring] OFF");
