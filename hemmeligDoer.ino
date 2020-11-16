@@ -2,13 +2,13 @@
 
 //Speaker
 const int soundPin = 3;
-const int volume = 2; //normal=3
+const int volume = 4; //normal=3
 
 //Motor
 const int pulsePin      = 7;
 const int directionPin  = 6; //motor direction - LOW = go up
 const int enablePin     = 2; //momentum - HIGH = motor keep holding wire 
-const long motorStepDistance = 5000;
+const long motorStepDistance = 27000;
 bool goUp = true;
 
 //Globals for LEDring
@@ -21,12 +21,6 @@ CRGB leds[NUM_LEDS]; // This is an array of leds.  One item for each led in your
 #define BRIGHTNESS          40
 #define FRAMES_PER_SECOND  120
 
-CRGBPalette16 currentPalette;
-TBlendType    currentBlending;
-extern CRGBPalette16 myRedWhiteBluePalette;
-extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
-
-
 
 // Globals for Ottos sensor 
 const int sensorPin = 4; //Touch sensor - Capacity sensor
@@ -37,7 +31,7 @@ int len;
 bool haveResetCount = false;
 int pressTimes[numPresses];
 int correctPressTimes[] = {200,200,200,500,200};
-CRGB pressColor = CRGB::Blue;
+CRGB pressColor = CRGB::White;
 
 /* Globals for Askes sensor */
 typedef struct {
@@ -53,10 +47,16 @@ RFIDcardType RFIDcards[] = {
 //num,access,macAdress    ,colorLED ,Sign                 ,type  
   {1 ,true  ,"57 51 87 4B",CRGB::Yellow ,"Rød-prikket"        ,"nøglebrik"},
   {2 ,true  ,"97 A1 E5 33",CRGB::Green  ,"Sort"               ,"nøglebrik"},
-  {3 ,true  ,"FD 34 D0 2B",CRGB::Gold  ,"BD-kort"            ,"Kort"},
+  {3 ,true  ,"FD 34 D0 2B",CRGB::Blue  ,"BD-kort"            ,"Kort"},
   {4 ,true  ,"87 0E 21 65",CRGB::Yellow   ,"Hvidt nr. 1"        ,"Kort"},
   {5 ,true  ,"72 13 DF 20",CRGB::Blue  ,"Hvidt nr. 2"        ,"Kort"},
-  {6 ,true  ,"30 F7 26 75",CRGB::Red  ,"Hvidt nr. 3"        ,"Kort"}
+  {6 ,true  ,"30 F7 26 75",CRGB::Red  ,"Hvidt nr. 3"        ,"Kort"},
+  {7 ,true  ,"8B 65 21 65",CRGB::Purple  ,"Hvidt nr. 4"        ,"Kort"},
+  {8 ,true  ,"B9 70 21 65",CRGB::Pink  ,"Hvidt nr. 5"        ,"Kort"},
+  {9 ,true  ,"E1 BA 26 75",CRGB::DeepSkyBlue   ,"Hvidt nr. 6"        ,"Kort"}
+
+  
+  
 };
 
 #include <SPI.h>
